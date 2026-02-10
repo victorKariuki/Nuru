@@ -31,6 +31,12 @@ const (
 	WEAK_REF_OBJ     = "KUMBUKUMBU"
 	ENVIRONMENT_OBJ  = "MAZINGIRA"
 	BASE64_OBJ       = "BASE64"
+	ITERATOR_OBJ     = "KITANZI"
+	BIG_INTEGER_OBJ  = "NAMBA_KUBWA"
+	SET_OBJ               = "SETI"
+	COMPILED_REGEX_OBJ     = "RE_ILIYOTAYARISHWA"
+	TUPLE_OBJ              = "JOZI"
+	DATE_OBJ               = "TAREHE"
 )
 
 type Object interface {

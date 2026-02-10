@@ -119,4 +119,25 @@ mwisho = b.yamwisho()
 andika(mwisho)  // Tokeo: tupu
 ```
 
+### geuza()
+Geuza mpangilio wa safu mahali pasipo hoja.
+
+### panga()
+Panga safu mahali kwa kulinganisha umbo la neno la vipengele. Haipokei hoja.
+
+### gawa(ukubwa)
+Gawa safu kuwa vikundi vya ukubwa uliotaja; hurudisha safu ya safu. Hoja moja: namba chanya.
+
+### kitanzi()
+
+`kitanzi()` hurudisha kitanzi (iterator) juu ya safu. Unaweza kutumia kitanzi na `kwa ... ktk` kuzunguka bila kubadilisha nafasi ya safu yenyewe. Viitanzi viwili au zaidi juu ya safu moja kila kimoja kina nafasi yake:
+
+```s
+a = [1, 2, 3]
+it = a.kitanzi()
+kwa i, x ktk it {
+    andika(i, x)
+}
+```
+
 Kwa kutumia taarifa hii, unaweza ukafanyakazi na safu za Nuru kwa ufanisi, kufanya iwe rahisi kuchambua mikusanyo ya data katika programu zako.

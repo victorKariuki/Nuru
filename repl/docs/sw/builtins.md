@@ -43,12 +43,6 @@ aina(2) // Output: "NAMBA"
 aina("Nuru") // Output: "NENO"
 ```
 
-## Kitendakazi fungua()
+Kufungua faili: tumia moduli **faili**: `tumia faili` kisha `faili.fungua(njia)` au `faili.fungua(njia, "r")`.
 
-Kitendakazi `fungua()` kinatumika kufungua faili. Inakubali hoja moja, ambayo ni njia ya faili unalotaka kufungua. Mfano:
-
-```go
-faili = fungua("data.txt")
-```
-
-Katika mfano huu, tumetumia kitendakazi `fungua()` kufungua faili linaloitwa "data.txt". Kibadilika `faili` kinabeba kumbukumbu ya faili lililofunguliwa.
+Kumbukumbu na utendaji: tumia moduli **mfumo**: `tumia mfumo`. Vitendakazi: `mfumo.safishaMemori()`, `mfumo.takwimuMemori()`, `mfumo.takwimuMemoriKwa(kamusi)`, `mfumo.kumbukumbaDhaifu(kitu)`.
