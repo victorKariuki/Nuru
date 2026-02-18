@@ -428,7 +428,7 @@ Nuru has a passionate community, join us on [Telegram](https://t.me/NuruProgramm
 
 ## License
 
-[MIT](http://opensource.org/licenses/MIT)
+This project is licensed under the **GNU General Public License v2.0** (GPL-2.0). See [LICENSE](LICENSE) in the repository for the full text.
 
 ## Authors
 
