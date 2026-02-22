@@ -1,6 +1,6 @@
 # Nuru VS Code Extension
 
-Syntax highlighting, LSP (diagnostics, go-to-definition, hover, completion, outline), and run support for Nuru. Detects `.nr` and `.sw` files.
+Syntax highlighting, LSP (diagnostics, go-to-definition, hover, completion, outline, rename, code actions, formatting), debugger (DAP), and run support for Nuru. Detects `.nr` and `.sw` files.
 
 ## Run current file
 
@@ -15,7 +15,21 @@ LSP is enabled by default (**Nuru: Enable Language Server**). To use it:
 2. Put `nuru-lsp` on your PATH, or set **Nuru: Language Server Path** in settings to the full path to the binary.
 3. Open a `.nr` or `.sw` file; the extension will start the server when the language is activated.
 
-You get diagnostics, go-to-definition, hover, completion, and document outline (symbols). If the server fails to start, check the path and ensure the binary runs; the extension will show an error message.
+You get: diagnostics, go-to-definition, hover, completion, document outline (symbols), rename, code actions (quick fix, organize imports), and document formatting. If the server fails to start, check the path and ensure the binary runs; the extension will show an error message.
+
+## Debugger (DAP)
+
+To debug a Nuru script:
+
+1. Build the DAP binary from the repo root: `go build -o nuru-dap ./cmd/nuru-dap`
+2. Put `nuru-dap` on your PATH, or set **Nuru: Debug Adapter Path** in settings to the full path to the binary.
+3. Open a `.nr` file, add breakpoints (click gutter or F9), then **Run → Start Debugging** (F5) or use the **Run and Debug** view with the **Launch Nuru file** configuration.
+
+You get: breakpoints, call stack, local variables, and continue/step controls. The launch config runs the current file; set `program` to `${file}` (default) or another script path.
+
+## Documentation
+
+Full LSP and DAP documentation (capabilities, implementation notes, source layout): [docs/tooling/LSP_AND_DAP.md](../../docs/tooling/LSP_AND_DAP.md) in the Nuru repo.
 
 ## Screenshot
 
