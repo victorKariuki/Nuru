@@ -32,6 +32,11 @@
     "configuration": {
       "title": "Nuru",
       "properties": {
+        "nuru.enableLanguageServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the Nuru Language Server (diagnostics, go-to-definition, hover, completion, outline)."
+        },
         "nuru.languageServerPath": {
           "type": "string",
           "default": "nuru-lsp",
@@ -41,6 +46,11 @@
           "type": "string",
           "default": "nuru",
           "description": "Path to the Nuru interpreter for running scripts (on PATH or absolute)."
+        },
+        "nuru.debugAdapterPath": {
+          "type": "string",
+          "default": "nuru-dap",
+          "description": "Path to the Nuru DAP server executable (on PATH or absolute)."
         }
       }
     },
@@ -54,6 +64,32 @@
       {
         "language": "nuru",
         "path": "./snippets/nuru.code-snippets"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "nuru",
+        "label": "Nuru",
+        "configurationAttributes": {
+          "launch": {
+            "program": {
+              "type": "string",
+              "description": "Path to the Nuru script to debug (e.g. ${file})"
+            }
+          }
+        }
+      }
+    ],
+    "configurationSnippets": [
+      {
+        "label": "Launch Nuru file",
+        "description": "Run the current Nuru file under the debugger",
+        "body": {
+          "type": "nuru",
+          "request": "launch",
+          "name": "Launch Nuru file",
+          "program": "${file}"
+        }
       }
     ]
   },

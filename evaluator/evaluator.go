@@ -15,6 +15,49 @@ var (
 	CONTINUE = &object.Continue{}
 )
 
+// DebugHook is called at statement boundaries when set (e.g. by a DAP server).
+// The hook may block until the debugger continues. If nil, debugging is disabled.
+var DebugHook func(node ast.Node, env *object.Environment)
+
+// DebugStackPush is called when entering a function (for DAP call stack). If nil, ignored.
+var DebugStackPush func(name string, line int, env *object.Environment)
+
+// DebugStackPop is called when leaving a function. If nil, ignored.
+var DebugStackPop func()
+
+// NodeLine returns the 1-based line number of the node's token if available.
+func NodeLine(node ast.Node) (line int, ok bool) {
+	if node == nil {
+		return 0, false
+	}
+	switch n := node.(type) {
+	case *ast.LetStatement:
+		return n.Token.Line, true
+	case *ast.ReturnStatement:
+		return n.Token.Line, true
+	case *ast.ExpressionStatement:
+		return n.Token.Line, true
+	case *ast.BlockStatement:
+		return n.Token.Line, true
+	case *ast.IfExpression:
+		return n.Token.Line, true
+	case *ast.WhileExpression:
+		return n.Token.Line, true
+	case *ast.CallExpression:
+		return n.Token.Line, true
+	case *ast.InfixExpression:
+		return n.Token.Line, true
+	case *ast.PrefixExpression:
+		return n.Token.Line, true
+	case *ast.Identifier:
+		return n.Token.Line, true
+	case *ast.FunctionLiteral:
+		return n.Token.Line, true
+	default:
+		return 0, false
+	}
+}
+
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
@@ -219,6 +262,9 @@ func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range program.Statements {
+		if DebugHook != nil {
+			DebugHook(statement, env)
+		}
 		result = Eval(statement, env)
 
 		switch result := result.(type) {
@@ -280,28 +326,34 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 }
 
 func applyFunction(fn object.Object, args []object.Object, line int) object.Object {
-	switch fn := fn.(type) {
+	switch f := fn.(type) {
 	case *object.Function:
-		extendedEnv := extendedFunctionEnv(fn, args)
-		evaluated := Eval(fn.Body, extendedEnv)
+		if DebugStackPush != nil {
+			DebugStackPush(f.Name, line, f.Env)
+		}
+		if DebugStackPop != nil {
+			defer DebugStackPop()
+		}
+		extendedEnv := extendedFunctionEnv(f, args)
+		evaluated := Eval(f.Body, extendedEnv)
 		return unwrapReturnValue(evaluated)
 	case *object.Builtin:
-		if result := fn.Fn(args...); result != nil {
+		if result := f.Fn(args...); result != nil {
 			return result
 		}
 		return NULL
 	case *object.Package:
 		obj := &object.Instance{
-			Package: fn,
-			Env:     object.NewEnclosedEnvironment(fn.Env),
+			Package: f,
+			Env:     object.NewEnclosedEnvironment(f.Env),
 		}
 		obj.Env.Set("@", obj)
-		node, ok := fn.Scope.Get("andaa")
+		node, ok := f.Scope.Get("andaa")
 		if !ok {
 			return newError("Hamna andaa kiendesha")
 		}
 		node.(*object.Function).Env.Set("@", obj)
-		applyFunction(node, args, fn.Name.Token.Line)
+		applyFunction(node, args, f.Name.Token.Line)
 		node.(*object.Function).Env.Del("@")
 		return obj
 	default:

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 
 	"github.com/NuruProgramming/Nuru/analysis"
 	"github.com/NuruProgramming/Nuru/ast"
+	"github.com/NuruProgramming/Nuru/format"
 	"github.com/NuruProgramming/Nuru/lexer"
 	"github.com/NuruProgramming/Nuru/lsp/symbols"
 	"github.com/NuruProgramming/Nuru/parser"
@@ -69,6 +71,14 @@ func (s *Server) handleMessage(body []byte) ([]byte, error) {
 		return s.handleHover(msg.ID, msg.Params)
 	case "textDocument/completion":
 		return s.handleCompletion(msg.ID, msg.Params)
+	case "textDocument/documentSymbol":
+		return s.handleDocumentSymbol(msg.ID, msg.Params)
+	case "textDocument/rename":
+		return s.handleRename(msg.ID, msg.Params)
+	case "textDocument/codeAction":
+		return s.handleCodeAction(msg.ID, msg.Params)
+	case "textDocument/formatting":
+		return s.handleFormatting(msg.ID, msg.Params)
 	case "shutdown":
 		return respondResult(msg.ID, nil)
 	case "exit":
@@ -94,10 +104,14 @@ func (s *Server) handleInitialize(id interface{}, params json.RawMessage) ([]byt
 	}
 	result := InitializeResult{
 		Capabilities: ServerCapabilities{
-			TextDocumentSync:      intPtr(1), // full sync
-			DefinitionProvider:    boolPtr(true),
-			HoverProvider:         boolPtr(true),
-			CompletionProvider:    &CompletionOptions{},
+			TextDocumentSync:       intPtr(1), // full sync
+			DefinitionProvider:     boolPtr(true),
+			HoverProvider:          boolPtr(true),
+			CompletionProvider:     &CompletionOptions{},
+			DocumentSymbolProvider: boolPtr(true),
+			RenameProvider:         boolPtr(true),
+			CodeActionProvider:         boolPtr(true),
+			DocumentFormattingProvider: boolPtr(true),
 		},
 		ServerInfo: &struct {
 			Name    string `json:"name"`
@@ -217,6 +231,134 @@ func (s *Server) handleCompletion(id interface{}, params json.RawMessage) ([]byt
 	}
 	items := completionItems(doc)
 	return respondResult(id, items)
+}
+
+func (s *Server) handleDocumentSymbol(id interface{}, params json.RawMessage) ([]byte, error) {
+	var p DocumentSymbolParams
+	if err := decodeParams(params, &p); err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	doc := s.docs[p.TextDocument.URI]
+	s.mu.Unlock()
+	if doc == nil || doc.symbols == nil {
+		return respondResult(id, []DocumentSymbol{})
+	}
+	var out []DocumentSymbol
+	for _, sym := range doc.symbols.ListFileScopeDefs() {
+		kind := SymbolKindVariable
+		if sym.Def.Kind == symbols.DefFunction {
+			kind = SymbolKindFunction
+		}
+		out = append(out, DocumentSymbol{
+			Name:   sym.Name,
+			Kind:   kind,
+			Range:  defToRange(sym.Def),
+			Detail: string(sym.Def.Kind),
+		})
+	}
+	return respondResult(id, out)
+}
+
+func (s *Server) handleRename(id interface{}, params json.RawMessage) ([]byte, error) {
+	var p RenameParams
+	if err := decodeParams(params, &p); err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	doc := s.docs[p.TextDocument.URI]
+	s.mu.Unlock()
+	if doc == nil || doc.symbols == nil {
+		return respondResult(id, WorkspaceEdit{Changes: map[string][]TextEdit{}})
+	}
+	name, ok := identifierAtPosition(doc.program, p.Position.Line, p.Position.Character)
+	if !ok {
+		return respondResult(id, WorkspaceEdit{Changes: map[string][]TextEdit{}})
+	}
+	if _, found := doc.symbols.Lookup(name); !found {
+		return respondResult(id, WorkspaceEdit{Changes: map[string][]TextEdit{}})
+	}
+	ranges := referencesInProgram(doc.program, name)
+	edits := make([]TextEdit, len(ranges))
+	for i, r := range ranges {
+		edits[i] = TextEdit{Range: r, NewText: p.NewName}
+	}
+	return respondResult(id, WorkspaceEdit{
+		Changes: map[string][]TextEdit{p.TextDocument.URI: edits},
+	})
+}
+
+func (s *Server) handleCodeAction(id interface{}, params json.RawMessage) ([]byte, error) {
+	var p CodeActionParams
+	if err := decodeParams(params, &p); err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	doc := s.docs[p.TextDocument.URI]
+	s.mu.Unlock()
+	var actions []CodeAction
+	for _, d := range p.Context.Diagnostics {
+		if d.Code == nil {
+			continue
+		}
+		switch *d.Code {
+		case DiagnosticCodeMissingSemicolon:
+			// Insert ";" at end of the line (diagnostic range is the whole line).
+			edit := TextEdit{
+				Range:   Range{Start: d.Range.End, End: d.Range.End},
+				NewText: ";",
+			}
+			actions = append(actions, CodeAction{
+				Title:       "Insert semicolon",
+				Kind:        CodeActionKindQuickFix,
+				Diagnostics: []Diagnostic{d},
+				Edit: &WorkspaceEdit{
+					Changes: map[string][]TextEdit{p.TextDocument.URI: {edit}},
+				},
+			})
+		}
+	}
+	if doc != nil && len(actions) == 0 {
+		// No fixable diagnostics; return empty array (not null).
+		return respondResult(id, []CodeAction{})
+	}
+	return respondResult(id, actions)
+}
+
+func (s *Server) handleFormatting(id interface{}, params json.RawMessage) ([]byte, error) {
+	var p DocumentFormattingParams
+	if err := decodeParams(params, &p); err != nil {
+		return nil, err
+	}
+	s.mu.Lock()
+	doc := s.docs[p.TextDocument.URI]
+	s.mu.Unlock()
+	if doc == nil {
+		return respondResult(id, []TextEdit{})
+	}
+	program, parseErrs := parseContentAndErrors(doc.content)
+	if program == nil || len(parseErrs) > 0 {
+		return respondResult(id, []TextEdit{})
+	}
+	opts := format.DefaultOptions()
+	opts.TabSize = p.Options.TabSize
+	opts.InsertSpaces = p.Options.InsertSpaces
+	formatted := format.Program(program, opts)
+	lines := strings.Split(doc.content, "\n")
+	endLine := len(lines) - 1
+	if endLine < 0 {
+		endLine = 0
+	}
+	endChar := 0
+	if endLine < len(lines) {
+		endChar = len(lines[endLine])
+	}
+	fullRange := Range{
+		Start: Position{Line: 0, Character: 0},
+		End:   Position{Line: endLine, Character: endChar},
+	}
+	edit := TextEdit{Range: fullRange, NewText: formatted}
+	return respondResult(id, []TextEdit{edit})
 }
 
 // parseContentAndErrors parses content and returns the program and any parser errors.

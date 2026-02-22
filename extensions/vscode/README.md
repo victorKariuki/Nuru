@@ -1,6 +1,6 @@
-# Nuru VSCode Extension
+# Nuru VS Code Extension
 
-Syntax highlighting, LSP (diagnostics, go-to-definition, hover, completion), and run support for Nuru. Detects `.nr` and `.sw` files.
+Syntax highlighting, LSP (diagnostics, go-to-definition, hover, completion, outline), and run support for Nuru. Detects `.nr` and `.sw` files.
 
 ## Run current file
 
@@ -9,32 +9,27 @@ Syntax highlighting, LSP (diagnostics, go-to-definition, hover, completion), and
 
 ## Language Server (LSP)
 
-To enable diagnostics, go-to-definition, hover, and completion:
+LSP is enabled by default (**Nuru: Enable Language Server**). To use it:
 
 1. Build the LSP binary from the repo root: `go build -o nuru-lsp ./cmd/nuru-lsp`
 2. Put `nuru-lsp` on your PATH, or set **Nuru: Language Server Path** in settings to the full path to the binary.
 3. Open a `.nr` or `.sw` file; the extension will start the server when the language is activated.
 
-## Screenshots
+You get diagnostics, go-to-definition, hover, completion, and document outline (symbols). If the server fails to start, check the path and ensure the binary runs; the extension will show an error message.
 
-A screenshot can be placed in `extensions/vscode/assets/screenshot.png` for the README and marketplace.
+## Screenshot
 
-<p align="center">
-<img alt="Nuru Programming Language" src="assets/screenshot.png">
-</p>
+Add `screenshot.png` under `extensions/vscode/assets/` for marketplace and README preview. The image is optional.
 
-## How To Install
+## Install (from repo)
 
-### Download From Market Place
+The extension is not yet on the Marketplace. Install from the Nuru repo:
 
-- Simply download the Nuru Extension from VSCode Market Place
+1. Clone [NuruProgramming/Nuru](https://github.com/NuruProgramming/Nuru) or download the [nuru extension folder](https://github.com/NuruProgramming/Nuru/tree/main/extensions/vscode/nuru).
+2. Copy the **nuru** folder (`extensions/vscode/nuru`) into your VS Code extensions directory:
+   - **Windows:** `%USERPROFILE%\.vscode\extensions`
+   - **Linux / macOS:** `~/.vscode/extensions`
+3. Run `npm install` inside the copied `nuru` folder (for `vscode-languageclient`).
+4. Reload VS Code.
 
-### Windows
-
-- Copy the whole [nuru folder](https://github.com/NuruProgramming/Nuru/tree/main/extensions/vscode/nuru) and paste it in the VSCode extensions directory found in `%USERPROFILE%\.vscode\extensions`
-- Restart VSCode
-
-### Linux and MacOS
-
-- Copy the whole [nuru folder](https://github.com/NuruProgramming/Nuru/tree/main/extensions/vscode/nuru) and paste it in the VSCode extensions directory found in `~/.vscode/extensions`
-- Restart VSCode
+When the extension is published to the Marketplace, you will be able to install it from the Extensions view.

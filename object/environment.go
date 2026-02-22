@@ -86,6 +86,15 @@ func (e *Environment) Set(name string, val Object) Object {
 	return val
 }
 
+// Names returns the names of variables in the current scope (for debugging).
+func (e *Environment) Names() []string {
+	names := make([]string, 0, len(e.store))
+	for k := range e.store {
+		names = append(names, k)
+	}
+	return names
+}
+
 func (e *Environment) Del(name string) bool {
 	_, ok := e.store[name]
 	if ok {

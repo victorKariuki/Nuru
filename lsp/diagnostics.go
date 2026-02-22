@@ -11,6 +11,11 @@ import (
 // parserErrorLineRe extracts "Mstari N:" from parser error messages.
 var parserErrorLineRe = regexp.MustCompile(`Mstari (\d+):`)
 
+// Diagnostic codes for code actions.
+const (
+	DiagnosticCodeMissingSemicolon = "missing_semicolon"
+)
+
 // parserErrorsToDiagnostics converts parser error strings to LSP diagnostics.
 // Parser messages are like "Mstari 3: Tulitegemea...". Line is 1-based; we convert to 0-based.
 func parserErrorsToDiagnostics(content string, errs []string) []Diagnostic {
@@ -31,17 +36,24 @@ func parserErrorsToDiagnostics(content string, errs []string) []Diagnostic {
 			endChar = len(lines[line])
 		}
 		sev := DiagnosticSeverityError
-		out = append(out, Diagnostic{
+		d := Diagnostic{
 			Range: Range{
 				Start: Position{Line: line, Character: 0},
 				End:   Position{Line: line, Character: endChar},
 			},
 			Message:  msg,
 			Severity: &sev,
-		})
+		}
+		// Fixable: parser expected semicolon
+		if strings.Contains(msg, "Tulitegemea") && strings.Contains(msg, ";") {
+			d.Code = strPtr(DiagnosticCodeMissingSemicolon)
+		}
+		out = append(out, d)
 	}
 	return out
 }
+
+func strPtr(s string) *string { return &s }
 
 // analysisWarningsToDiagnostics converts analysis.Warning to LSP diagnostics.
 // Warning uses 1-based Line and Column; LSP uses 0-based.

@@ -33,6 +33,8 @@ type Diagnostic struct {
 	Message string `json:"message"`
 	// Severity optional; 1=Error, 2=Warning
 	Severity *int `json:"severity,omitempty"`
+	// Code identifies the diagnostic for code actions (e.g. "missing_semicolon").
+	Code *string `json:"code,omitempty"`
 }
 
 // InitializeParams for initialize request.
@@ -53,11 +55,14 @@ type InitializeResult struct {
 
 // ServerCapabilities advertised by the server.
 type ServerCapabilities struct {
-	TextDocumentSync   *int                    `json:"textDocumentSync,omitempty"` // 1 = full
-	DefinitionProvider *bool                   `json:"definitionProvider,omitempty"`
-	HoverProvider      *bool                   `json:"hoverProvider,omitempty"`
-	CompletionProvider *CompletionOptions       `json:"completionProvider,omitempty"`
-	DocumentSymbolProvider *bool               `json:"documentSymbolProvider,omitempty"`
+	TextDocumentSync        *int              `json:"textDocumentSync,omitempty"` // 1 = full
+	DefinitionProvider      *bool             `json:"definitionProvider,omitempty"`
+	HoverProvider           *bool             `json:"hoverProvider,omitempty"`
+	CompletionProvider      *CompletionOptions `json:"completionProvider,omitempty"`
+	DocumentSymbolProvider  *bool             `json:"documentSymbolProvider,omitempty"`
+	RenameProvider          *bool             `json:"renameProvider,omitempty"`
+	CodeActionProvider         *bool             `json:"codeActionProvider,omitempty"`
+	DocumentFormattingProvider *bool             `json:"documentFormattingProvider,omitempty"`
 }
 
 // CompletionOptions for completion provider.
@@ -146,11 +151,74 @@ type CompletionParams struct {
 	TextDocumentPositionParams
 }
 
+// DocumentSymbolParams for textDocument/documentSymbol.
+type DocumentSymbolParams struct {
+	TextDocument TextDocumentIdentifier `json:"textDocument"`
+}
+
 // DocumentSymbol for textDocument/documentSymbol (optional).
 type DocumentSymbol struct {
-	Name   string         `json:"name"`
-	Kind   int            `json:"kind"` // SymbolKind
-	Range  Range          `json:"range"`
-	Detail string         `json:"detail,omitempty"`
+	Name     string           `json:"name"`
+	Kind     int              `json:"kind"` // SymbolKind
+	Range    Range            `json:"range"`
+	Detail   string           `json:"detail,omitempty"`
 	Children []DocumentSymbol `json:"children,omitempty"`
+}
+
+// SymbolKind (LSP enum) for document symbols.
+const (
+	SymbolKindFunction = 12
+	SymbolKindVariable = 13
+)
+
+// TextEdit is a single edit (range + newText).
+type TextEdit struct {
+	Range   Range  `json:"range"`
+	NewText string `json:"newText"`
+}
+
+// WorkspaceEdit holds edits per document URI.
+type WorkspaceEdit struct {
+	Changes map[string][]TextEdit `json:"changes,omitempty"`
+}
+
+// RenameParams for textDocument/rename.
+type RenameParams struct {
+	TextDocumentPositionParams
+	NewName string `json:"newName"`
+}
+
+// CodeActionKind (LSP) for code action kind.
+const CodeActionKindQuickFix = "quickfix"
+
+// CodeActionParams for textDocument/codeAction.
+type CodeActionParams struct {
+	TextDocument TextDocumentIdentifier `json:"textDocument"`
+	Range        Range                 `json:"range"`
+	Context      CodeActionContext     `json:"context"`
+}
+
+// CodeActionContext contains diagnostics for the code action request.
+type CodeActionContext struct {
+	Diagnostics []Diagnostic `json:"diagnostics"`
+}
+
+// CodeAction for textDocument/codeAction response.
+type CodeAction struct {
+	Title       string         `json:"title"`
+	Kind        string         `json:"kind,omitempty"`
+	Diagnostics []Diagnostic   `json:"diagnostics,omitempty"`
+	Edit        *WorkspaceEdit `json:"edit,omitempty"`
+}
+
+// DocumentFormattingParams for textDocument/formatting.
+type DocumentFormattingParams struct {
+	TextDocument TextDocumentIdentifier `json:"textDocument"`
+	Options      FormattingOptions      `json:"options"`
+}
+
+// FormattingOptions for formatting (tabSize, insertSpaces).
+type FormattingOptions struct {
+	TabSize      int  `json:"tabSize"`
+	InsertSpaces bool `json:"insertSpaces"`
 }

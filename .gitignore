@@ -50,7 +50,8 @@ _testmain.go
 testbinaries/
 tests_random/
 nuru
-nuru-lsp
+/nuru-lsp
+/nuru-dap
 /bin
 Notes.md
 tutorials/en/*

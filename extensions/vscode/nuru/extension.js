@@ -1,5 +1,6 @@
 "use strict";
 
+const path = require("path");
 const vscode = require("vscode");
 const {
   LanguageClient,
@@ -11,29 +12,42 @@ const {
 let client;
 
 function activate(context) {
-  const serverCommand = vscode.workspace
-    .getConfiguration("nuru")
-    .get("languageServerPath", "nuru-lsp");
+  const config = vscode.workspace.getConfiguration("nuru");
+  const enableLsp = config.get("enableLanguageServer", true);
 
-  const serverOptions = {
-    command: serverCommand,
-    args: [],
-  };
-
-  const clientOptions = {
-    documentSelector: [{ scheme: "file", language: "nuru" }],
-  };
-
-  client = new LanguageClient(
-    "nuruLsp",
-    "Nuru Language Server",
-    serverOptions,
-    clientOptions
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterDescriptorFactory("nuru", {
+      createDebugAdapterDescriptor() {
+        const cfg = vscode.workspace.getConfiguration("nuru");
+        const adapterPath = cfg.get("debugAdapterPath", "nuru-dap");
+        return new vscode.DebugAdapterExecutable(adapterPath, []);
+      },
+    })
   );
 
-  client.start().then(() => {
-    context.subscriptions.push(client);
-  });
+  if (enableLsp) {
+    const serverCommand = config.get("languageServerPath", "nuru-lsp");
+    const serverOptions = { command: serverCommand, args: [] };
+    const clientOptions = {
+      documentSelector: [{ scheme: "file", language: "nuru" }],
+    };
+    client = new LanguageClient(
+      "nuruLsp",
+      "Nuru Language Server",
+      serverOptions,
+      clientOptions
+    );
+    client.start().then(() => {
+      context.subscriptions.push(client);
+    }).catch((err) => {
+      const msg = err && err.message ? err.message : String(err);
+      vscode.window.showErrorMessage(
+        "Nuru: Language Server failed to start. " +
+        "Ensure nuru-lsp is on your PATH or set \"Nuru: Language Server Path\" in settings. " +
+        msg
+      );
+    });
+  }
 
   context.subscriptions.push(
     vscode.commands.registerCommand("nuru.runFile", async () => {
@@ -45,12 +59,16 @@ function activate(context) {
         return;
       }
       const file = editor.document.uri.fsPath;
-      const interpreter = vscode.workspace
-        .getConfiguration("nuru")
-        .get("interpreterPath", "nuru");
+      const interpreter = config.get("interpreterPath", "nuru");
+      if (!interpreter || String(interpreter).trim() === "") {
+        vscode.window.showWarningMessage(
+          "Nuru: Interpreter path is empty. Set \"Nuru: Interpreter Path\" in settings or put the nuru binary on your PATH."
+        );
+        return;
+      }
       const term = vscode.window.createTerminal({
         name: "Nuru",
-        cwd: require("path").dirname(file),
+        cwd: path.dirname(file),
       });
       term.show();
       term.sendText(`${interpreter} "${file}"`);

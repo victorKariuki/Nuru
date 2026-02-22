@@ -81,6 +81,18 @@ func (t *Table) ListFileScope() []struct{ Name string; Kind DefKind } {
 	return out
 }
 
+// ListFileScopeDefs returns all names and their definitions in the file scope (for document symbols).
+func (t *Table) ListFileScopeDefs() []struct{ Name string; Def Def } {
+	if len(t.scopes) == 0 {
+		return nil
+	}
+	out := make([]struct{ Name string; Def Def }, 0, len(t.scopes[0]))
+	for name, d := range t.scopes[0] {
+		out = append(out, struct{ Name string; Def Def }{Name: name, Def: d})
+	}
+	return out
+}
+
 // Build builds the symbol table from a program.
 func Build(program *ast.Program) *Table {
 	if program == nil {

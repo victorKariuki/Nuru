@@ -9,6 +9,9 @@ func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) obje
 	var result object.Object
 
 	for _, statement := range block.Statements {
+		if DebugHook != nil {
+			DebugHook(statement, env)
+		}
 		result = Eval(statement, env)
 
 		if result != nil {

@@ -158,6 +158,23 @@ func walkChildren(node ast.Node, line, character int, out *string, ok *bool) {
 	}
 }
 
+// tokenToRange converts a token (1-based Line, Column) to LSP Range (0-based).
+func tokenToRange(tok token.Token) Range {
+	line := tok.Line - 1
+	if line < 0 {
+		line = 0
+	}
+	col := tok.Column - 1
+	if col < 0 {
+		col = 0
+	}
+	endCol := col + len(tok.Literal)
+	return Range{
+		Start: Position{Line: line, Character: col},
+		End:   Position{Line: line, Character: endCol},
+	}
+}
+
 // defToRange converts a symbol Def (1-based) to LSP Range (0-based).
 func defToRange(d symbols.Def) Range {
 	line := d.Line - 1

@@ -54,8 +54,12 @@ test:
 	@./gotest --format testname ./evaluator/
 	@echo -e '\nBuilding LSP...'
 	@go build ./cmd/nuru-lsp/
+	@echo -e '\nBuilding DAP...'
+	@go build ./cmd/nuru-dap/
 	@echo -e '\nTesting LSP and symbols...'
 	@go test ./lsp/... ./lsp/symbols/...
+	@echo -e '\nTesting format...'
+	@go test ./format/...
 
 smoke: build_test
 	@echo 'Running smoke_no_io.nr...'

@@ -10,11 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Syntax highlighting for `.nr` and `.sw` files
 - Language configuration (comments, brackets, auto-closing pairs)
-- Nuru Language Server (LSP) support: diagnostics, go-to-definition, hover, completion
+- Nuru Language Server (LSP) support: diagnostics, go-to-definition, hover, completion, document outline (symbols)
 - **Nuru: Run current file** command (Command Palette) to run the active script with the Nuru interpreter
 - Snippets: `fanya`, `kama` / `au kama` / `sivyo`, `kwa`, `wakati`, `unda`, `tumia`, `badili` (switch), `jaribu` / `jaribu-bila` (try-catch), `rudisha`, `pakeji`, `vunja`, `endelea`
+- Setting `nuru.enableLanguageServer` to turn LSP on or off (default: true)
 - Setting `nuru.languageServerPath` for the LSP binary
 - Setting `nuru.interpreterPath` for running scripts
+- Client-side error message when the language server fails to start; run command warns if interpreter path is empty
 
 ### Changed
 
