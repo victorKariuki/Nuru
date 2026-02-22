@@ -17,7 +17,7 @@ Nuru follows a **Policy** to decide where new functionality lives: **global buil
 | **I/O** | `andika`, `jaza` | Print and read input; universal. |
 | **Type / meta** | `aina`, `badilisha`, `namba`, `tungo` | Type inspection and conversion; apply to any value. |
 | **Sequence** | `mfululizo` | Range/sequence helper; kernel utility. |
-| **Collections** | `seti`, `jozi` | Create set or immutable tuple from args or array. |
+| **Collections** | `seta`, `jozi` | Create set or immutable tuple from args or array. |
 | **Internal** | `_andika` | If needed for language or tooling; avoid adding more. |
 
 **Do not add builtins for:**
