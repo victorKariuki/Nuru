@@ -50,13 +50,15 @@ _testmain.go
 testbinaries/
 tests_random/
 nuru
+nuru-lsp
+/bin
 Notes.md
 tutorials/en/*
 config.json
 *local*
+solutions/
 
 # For Nuru executables
-/nuru
 /Nuru
 
 dist/

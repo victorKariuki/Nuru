@@ -52,6 +52,10 @@ test:
 	@./gotest --format testname ./object/
 	@echo -e '\nTesting Evaluator...'
 	@./gotest --format testname ./evaluator/
+	@echo -e '\nBuilding LSP...'
+	@go build ./cmd/nuru-lsp/
+	@echo -e '\nTesting LSP and symbols...'
+	@go test ./lsp/... ./lsp/symbols/...
 
 smoke: build_test
 	@echo 'Running smoke_no_io.nr...'

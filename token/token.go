@@ -8,6 +8,7 @@ type Token struct {
 	Type    TokenType
 	Literal string
 	Line    int
+	Column  int // 1-based column of the first character of the token
 }
 
 const (

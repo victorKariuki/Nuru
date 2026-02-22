@@ -1,35 +1,61 @@
 {
-    "name": "nuru",
-    "displayName": "Nuru",
-    "description": "Nuru Programming Language",
-    "version": "0.0.1",
-    "engines": {
-        "vscode": "^1.74.0"
-    },
-    "categories": [
-        "Programming Languages"
+  "name": "nuru",
+  "displayName": "Nuru",
+  "description": "Nuru Programming Language",
+  "version": "0.0.1",
+  "main": "./extension.js",
+  "engines": { "vscode": "^1.74.0" },
+  "categories": ["Programming Languages"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NuruProgramming/Nuru"
+  },
+  "bugs": { "url": "https://github.com/NuruProgramming/Nuru/issues" },
+  "homepage": "https://github.com/NuruProgramming/Nuru#readme",
+  "activationEvents": ["onLanguage:nuru"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "nuru",
+        "aliases": ["Nuru Programming Language", "nuru"],
+        "extensions": [".nr", ".sw"],
+        "configuration": "./language-configuration.json"
+      }
     ],
-    "contributes": {
-        "languages": [
-            {
-                "id": "nuru",
-                "aliases": [
-                    "Nuru Programming Language",
-                    "nuru"
-                ],
-                "extensions": [
-                    ".nr",
-                    ".sw"
-                ],
-                "configuration": "./language-configuration.json"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "nuru",
-                "scopeName": "source.nr",
-                "path": "./syntaxes/nuru.tmLanguage.json"
-            }
-        ]
-    }
+    "grammars": [
+      {
+        "language": "nuru",
+        "scopeName": "source.nr",
+        "path": "./syntaxes/nuru.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Nuru",
+      "properties": {
+        "nuru.languageServerPath": {
+          "type": "string",
+          "default": "nuru-lsp",
+          "description": "Path to the Nuru LSP server executable (on PATH or absolute)."
+        },
+        "nuru.interpreterPath": {
+          "type": "string",
+          "default": "nuru",
+          "description": "Path to the Nuru interpreter for running scripts (on PATH or absolute)."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "nuru.runFile",
+        "title": "Nuru: Run current file"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "nuru",
+        "path": "./snippets/nuru.code-snippets"
+      }
+    ]
+  },
+  "dependencies": { "vscode-languageclient": "^9.0.1" }
 }

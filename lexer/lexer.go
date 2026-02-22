@@ -12,10 +12,11 @@ type Lexer struct {
 	readPosition int
 	ch           rune
 	line         int
+	column       int // 1-based column of the current character
 }
 
 func New(input string) *Lexer {
-	l := &Lexer{input: []rune(input), line: 1}
+	l := &Lexer{input: []rune(input), line: 1, column: 1}
 	l.readChar()
 	return l
 }
@@ -26,9 +27,18 @@ func (l *Lexer) readChar() {
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
-
+	// Update line/column when advancing (not on first read)
+	leavingPos := l.position
 	l.position = l.readPosition
 	l.readPosition += 1
+	if l.readPosition > 1 && leavingPos >= 0 && leavingPos < len(l.input) {
+		if l.input[leavingPos] == '\n' {
+			l.line++
+			l.column = 1
+		} else {
+			l.column++
+		}
+	}
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -47,126 +57,141 @@ func (l *Lexer) NextToken() token.Token {
 	case rune('='):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.ASSIGN, l.line, l.ch)
+			tok = newToken(token.ASSIGN, l.line, l.column, l.ch)
 		}
 	case rune(';'):
-		tok = newToken(token.SEMICOLON, l.line, l.ch)
+		tok = newToken(token.SEMICOLON, l.line, l.column, l.ch)
 	case rune('('):
-		tok = newToken(token.LPAREN, l.line, l.ch)
+		tok = newToken(token.LPAREN, l.line, l.column, l.ch)
 	case rune(')'):
-		tok = newToken(token.RPAREN, l.line, l.ch)
+		tok = newToken(token.RPAREN, l.line, l.column, l.ch)
 	case rune('{'):
-		tok = newToken(token.LBRACE, l.line, l.ch)
+		tok = newToken(token.LBRACE, l.line, l.column, l.ch)
 	case rune('}'):
-		tok = newToken(token.RBRACE, l.line, l.ch)
+		tok = newToken(token.RBRACE, l.line, l.column, l.ch)
 	case rune(','):
-		tok = newToken(token.COMMA, l.line, l.ch)
+		tok = newToken(token.COMMA, l.line, l.column, l.ch)
 	case rune('+'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.PLUS_ASSIGN, Line: l.line, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.PLUS_ASSIGN, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else if l.peekChar() == rune('+') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.PLUS_PLUS, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.PLUS_PLUS, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.PLUS, l.line, l.ch)
+			tok = newToken(token.PLUS, l.line, l.column, l.ch)
 		}
 	case rune('-'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.MINUS_ASSIGN, Line: l.line, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.MINUS_ASSIGN, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else if l.peekChar() == rune('-') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.MINUS_MINUS, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.MINUS_MINUS, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.MINUS, l.line, l.ch)
+			tok = newToken(token.MINUS, l.line, l.column, l.ch)
 		}
 	case rune('!'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.BANG, l.line, l.ch)
+			tok = newToken(token.BANG, l.line, l.column, l.ch)
 		}
 	case rune('/'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.SLASH_ASSIGN, Line: l.line, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.SLASH_ASSIGN, Line: l.line, Column: col, Literal: string(ch) + string(l.ch)}
 		} else {
-			tok = newToken(token.SLASH, l.line, l.ch)
+			tok = newToken(token.SLASH, l.line, l.column, l.ch)
 		}
 	case rune('*'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.ASTERISK_ASSIGN, Line: l.line, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.ASTERISK_ASSIGN, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else if l.peekChar() == rune('*') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.POW, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.POW, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.ASTERISK, l.line, l.ch)
+			tok = newToken(token.ASTERISK, l.line, l.column, l.ch)
 		}
 	case rune('<'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.LTE, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.LTE, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.LT, l.line, l.ch)
+			tok = newToken(token.LT, l.line, l.column, l.ch)
 		}
 	case rune('>'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.GTE, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.GTE, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		} else {
-			tok = newToken(token.GT, l.line, l.ch)
+			tok = newToken(token.GT, l.line, l.column, l.ch)
 		}
 	case rune('"'):
 		tok.Type = token.STRING
-		tok.Literal = l.readString()
 		tok.Line = l.line
+		tok.Column = l.column
+		tok.Literal = l.readString()
 	case rune('\''):
-		tok = token.Token{Type: token.STRING, Literal: l.readSingleQuoteString(), Line: l.line}
+		tok = token.Token{Type: token.STRING, Literal: l.readSingleQuoteString(), Line: l.line, Column: l.column}
 	case rune('['):
-		tok = newToken(token.LBRACKET, l.line, l.ch)
+		tok = newToken(token.LBRACKET, l.line, l.column, l.ch)
 	case rune(']'):
-		tok = newToken(token.RBRACKET, l.line, l.ch)
+		tok = newToken(token.RBRACKET, l.line, l.column, l.ch)
 	case rune(':'):
-		tok = newToken(token.COLON, l.line, l.ch)
+		tok = newToken(token.COLON, l.line, l.column, l.ch)
 	case rune('@'):
-		tok = newToken(token.AT, l.line, l.ch)
+		tok = newToken(token.AT, l.line, l.column, l.ch)
 	case rune('.'):
-		tok = newToken(token.DOT, l.line, l.ch)
+		tok = newToken(token.DOT, l.line, l.column, l.ch)
 	case rune('&'):
 		if l.peekChar() == rune('&') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.AND, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.AND, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		}
 	case rune('|'):
 		if l.peekChar() == rune('|') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.OR, Literal: string(ch) + string(l.ch), Line: l.line}
+			tok = token.Token{Type: token.OR, Literal: string(ch) + string(l.ch), Line: l.line, Column: col}
 		}
 	case rune('%'):
 		if l.peekChar() == rune('=') {
 			ch := l.ch
+			col := l.column
 			l.readChar()
-			tok = token.Token{Type: token.MODULUS_ASSIGN, Line: l.line, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.MODULUS_ASSIGN, Line: l.line, Column: col, Literal: string(ch) + string(l.ch)}
 		} else {
-			tok = newToken(token.MODULUS, l.line, l.ch)
+			tok = newToken(token.MODULUS, l.line, l.column, l.ch)
 		}
 	case rune('#'):
 		if l.peekChar() == rune('!') && l.line == 1 {
@@ -177,22 +202,25 @@ func (l *Lexer) NextToken() token.Token {
 		tok.Literal = ""
 		tok.Type = token.EOF
 		tok.Line = l.line
+		tok.Column = l.column
 	default:
 		if isLetter(l.ch) {
+			tok.Line = l.line
+			tok.Column = l.column
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
-			tok.Line = l.line
 			return tok
 		} else if isDigit(l.ch) && isLetter(l.peekChar()) {
+			tok.Line = l.line
+			tok.Column = l.column
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
-			tok.Line = l.line
 			return tok
 		} else if isDigit(l.ch) {
 			tok = l.readDecimal()
 			return tok
 		} else {
-			tok = newToken(token.ILLEGAL, l.line, l.ch)
+			tok = newToken(token.ILLEGAL, l.line, l.column, l.ch)
 		}
 	}
 
@@ -200,8 +228,8 @@ func (l *Lexer) NextToken() token.Token {
 	return tok
 }
 
-func newToken(tokenType token.TokenType, line int, ch rune) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch), Line: line}
+func newToken(tokenType token.TokenType, line, column int, ch rune) token.Token {
+	return token.Token{Type: tokenType, Literal: string(ch), Line: line, Column: column}
 }
 
 func (l *Lexer) readIdentifier() string {
@@ -239,13 +267,14 @@ func (l *Lexer) readNumber() string {
 }
 
 func (l *Lexer) readDecimal() token.Token {
+	startLine, startCol := l.line, l.column
 	integer := l.readNumber()
 	if l.ch == '.' && isDigit(l.peekChar()) {
 		l.readChar()
 		fraction := l.readNumber()
-		return token.Token{Type: token.FLOAT, Literal: integer + "." + fraction, Line: l.line}
+		return token.Token{Type: token.FLOAT, Literal: integer + "." + fraction, Line: startLine, Column: startCol}
 	}
-	return token.Token{Type: token.INT, Literal: integer, Line: l.line}
+	return token.Token{Type: token.INT, Literal: integer, Line: startLine, Column: startCol}
 }
 
 func (l *Lexer) peekChar() rune {

@@ -1,0 +1,124 @@
+{
+  "Variable (fanya)": {
+    "prefix": "fanya",
+    "body": ["fanya ${1:jina} = ${2:thamani}"],
+    "description": "Variable declaration"
+  },
+  "If / else if / else": {
+    "prefix": "kama",
+    "body": [
+      "kama ${1:sharti} {",
+      "\t$0",
+      "} au kama ${2:sharti} {",
+      "\t",
+      "} sivyo {",
+      "\t",
+      "}"
+    ],
+    "description": "Conditional: kama, au kama, sivyo"
+  },
+  "If only": {
+    "prefix": "kama-simple",
+    "body": [
+      "kama ${1:sharti} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Simple if block"
+  },
+  "For loop (kwa ... ktk)": {
+    "prefix": "kwa",
+    "body": [
+      "kwa ${1:kitanzi} ktk ${2:orodha} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "For-in loop"
+  },
+  "While loop": {
+    "prefix": "wakati",
+    "body": [
+      "wakati ${1:sharti} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "Function (unda)": {
+    "prefix": "unda",
+    "body": [
+      "unda ${1:jina}(${2:hoja}) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Function declaration"
+  },
+  "Import (tumia)": {
+    "prefix": "tumia",
+    "body": ["tumia ${1:moduli}"],
+    "description": "Import module"
+  },
+  "Switch (badili)": {
+    "prefix": "badili",
+    "body": [
+      "badili (${1:thamani}) {",
+      "\tikiwa ${2:linganisho} {",
+      "\t\t$0",
+      "\t}",
+      "\tikiwa ${3:linganisho} {",
+      "\t\t",
+      "\t}",
+      "\tkawaida {",
+      "\t\t",
+      "\t}",
+      "}"
+    ],
+    "description": "Switch: badili, ikiwa, kawaida"
+  },
+  "Try / catch (jaribu shika)": {
+    "prefix": "jaribu",
+    "body": [
+      "jaribu {",
+      "\t$0",
+      "} shika ${1:makosa} {",
+      "\t",
+      "}"
+    ],
+    "description": "Try-catch with error variable"
+  },
+  "Try / catch (jaribu bila)": {
+    "prefix": "jaribu-bila",
+    "body": [
+      "jaribu {",
+      "\t$0",
+      "} bila {",
+      "\t",
+      "}"
+    ],
+    "description": "Try-catch without error variable"
+  },
+  "Return (rudisha)": {
+    "prefix": "rudisha",
+    "body": ["rudisha ${1:thamani}"],
+    "description": "Return from function"
+  },
+  "Package (pakeji)": {
+    "prefix": "pakeji",
+    "body": [
+      "pakeji ${1:jina} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Package definition"
+  },
+  "Break (vunja)": {
+    "prefix": "vunja",
+    "body": ["vunja"],
+    "description": "Break out of loop or switch"
+  },
+  "Continue (endelea)": {
+    "prefix": "endelea",
+    "body": ["endelea"],
+    "description": "Continue to next loop iteration"
+  }
+}
